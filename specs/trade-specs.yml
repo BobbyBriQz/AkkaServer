@@ -1,0 +1,282 @@
+swagger: '2.0'
+
+info:
+  version: v1
+  title: "Onboard Trade System"
+  description:
+    Service that facilitates Orders, Rates and Transactions for customers and partners.
+  contact:
+    name: "Nestcoin"
+    email: "dev@nestcoin.com"
+
+basePath: /
+host: trade.nestcoin.com
+schemes:
+  - "https"
+  - "http"
+
+securityDefinitions:
+  authToken:
+    type: apiKey
+    name: "x-auth-token"
+    in: header
+
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+tags:
+  - name: users
+    description: "User related endpoints"
+
+paths:
+  /currencies/rate:
+    get:
+      security:
+        - authToken: []
+      tags:
+        - "users"
+      summary: "Retrieve rate for currency pair"
+      parameters:
+        - name: "body"
+          in: "body"
+          schema:
+            $ref: "#/definitions/GetRateRequest"
+      description: "Endpoint to retrieve rate of currency pair"
+      operationId: getCurrencyRateEndpoint
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/GetRateData"
+        "400":
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "401":
+          description: "Unauthorized request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+
+  /currencies/fiat:
+    get:
+      security:
+        - authToken: []
+      tags:
+        - "users"
+      summary: "Retrieve all supported fiat currencies"
+      description: "Endpoint to retrieve all supported fiat currrencies"
+      operationId: getFiatCurrenciesEndpoint
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/GetFiatCurrenciesData"
+        "400":
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "401":
+          description: "Unauthorized request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+
+  /currencies/token:
+    get:
+      security:
+        - authToken: []
+      tags:
+        - "users"
+      summary: "Retrieve all supported token currencies"
+      description: "Endpoint to retrieve all supported cryptocurrrencies"
+      operationId: getCryptoCurrenciesEndpoint
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/GetCryptoCurrenciesData"
+        "400":
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "401":
+          description: "Unauthorized request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+
+  /currencies/waitlist:
+    post:
+      security:
+        - authToken: []
+      tags:
+        - "users"
+      summary: "Add user to currency waitlist"
+      parameters:
+        - name: "body"
+          in: "body"
+          schema:
+            $ref: "#/definitions/AddToCurrencyWaitlistRequest"
+      description: "Endpoint to add user to currency waitlist"
+      operationId: addToCurrencyWaitlistEndpoint
+      responses:
+        "200":
+          description: "Success"
+        "400":
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "401":
+          description: "Unauthorized request"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/ResponseEnvelope"
+
+# GET  /orders
+# gets all online orders, takes in the currency pair as parameters
+
+# POST /orders
+# post an order, to be called by partners (or at least their actions, lol)
+
+# PUT /orders/{id}
+# update an order
+
+# DELETE /orders/{id}
+# delete an order
+
+#  POST /dispute
+# Triggered by the REPORT button on the UI, takes in transaction id and dispute details
+
+# GET /payment/methods
+# retrieves the payment methods eg Bank transfer, etc.
+
+# GET /payment/networks
+# retrieves the possible token networks, eg ERC-20
+
+# POST /onramp/initiate
+# creates a transaction record (while checking the order status in the background), triggers movement of token to escrow
+# and returns the transaction id, as well as supplementary order details to be displayed on the ui
+
+# POST /onramp/customerDeposit
+# Triggered by I HAVE PAID button on UI, should notify Partner to confirm, etc. Should also update transaction record
+
+# POST /onramp/partnerConfirm
+# confirms receipt of value from customer, eg via bank transfer, and triggers release of token from escrow
+
+# POST /offramp/initiate
+# creates a transaction record (while checking the order status in the background), triggers movement of token to escrow
+# and returns the transaction id, as well as supplementary order details to be displayed on the ui
+
+# POST /offramp/customerDeposit
+# Triggered by successful token transfer on UI, should notify Partner to make bank transfer, etc. Should also update
+# transaction record
+
+# POST /offramp/partnerDeposit
+# called when partner transfers value to customer via bank transfer, etc. Should notify customer to confirm.
+
+# POST /offramp/customerConfirm
+# called after customer receives value. should trigger release of token on escrow
+
+
+definitions:
+
+  GetRateRequest:
+    type: object
+    properties:
+      fromCurrency:
+        type: "string"
+        example: "NGN"
+      toCurrency:
+        type: "string"
+        example: "USDT"
+    required:
+      - fromCurrency
+      - toCurrency
+
+  GetRateData:
+    type: object
+    properties:
+      currencyPair:
+        type: "string"
+        example: "NGN/USDT"
+      rate:
+        type: "number"
+        example:  0.0019011407
+
+  FiatCurrency:
+    type: object
+    properties:
+      name:
+        type: string
+        example: "Nigerian Naira"
+      code:
+        type: string
+        example: "NGN"
+      logoUrl:
+        type: string
+        example: "https://www.pngrepo.com/png/242326/512/nigeria.png"
+
+  GetFiatCurrenciesData:
+    type: array
+    items:
+      $ref: "#/definitions/FiatCurrency"
+
+  CryptoCurrency:
+    type: object
+    properties:
+      name:
+        type: string
+        example: "Tether ERC-20"
+      code:
+        type: string
+        example: "USDT"
+      logoUrl:
+        type: string
+        example: "https://www.pngrepo.com/png/367256/512/usdt.png"
+
+  GetCryptoCurrenciesData:
+    type: array
+    items:
+      $ref: "#/definitions/CryptoCurrency"
+
+  AddToCurrencyWaitlistRequest:
+    type: object
+    properties:
+      userId:
+        type: string
+        format: uuid
+    required:
+      - userId
+
+  ResponseEnvelope:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      status:
+        type: string
+        description: Error code
+        example: "RESOURCE_NOT_FOUND"
+      message:
+        type: string
+        description: Descriptive error message
+        example: Descriptive error message
+        x-faker: lorem.sentence
+      data:
+        type: object
